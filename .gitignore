@@ -1,0 +1,34 @@
+# Django
+*.pyc
+*~
+__pycache__/
+migrations/
+!migrations/__init__.py
+
+# Database
+*.sqlite3
+*.db
+
+# Environment variables
+.env
+.env.local
+
+# Virtual environment
+fitgenius_env/
+
+# Static files
+/staticfiles/
+/media/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
