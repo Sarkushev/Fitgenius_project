@@ -1,6 +1,15 @@
-# training_plans/models.py
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.contrib.auth.models import AbstractUser
+from django.conf import settings
+
+# Создаем кастомную модель пользователя
+class CustomUser(AbstractUser):
+    email = models.EmailField(unique=True, verbose_name="Email")
+    phone = models.CharField(max_length=20, blank=True, verbose_name="Телефон")
+    
+    def __str__(self):
+        return self.email
 
 class UserProfile(models.Model):
     GOAL_CHOICES = [
@@ -16,7 +25,15 @@ class UserProfile(models.Model):
         ('female', 'Женщина'),
     ]
     
-    name = models.CharField(max_length=100, verbose_name="Имя")
+    # Связываем профиль с пользователем
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE, 
+        related_name='profile',
+        verbose_name="Пользователь"
+    )
+    
+    # Персональные данные
     age = models.IntegerField(
         validators=[MinValueValidator(16), MaxValueValidator(80)],
         verbose_name="Возраст"
@@ -35,16 +52,15 @@ class UserProfile(models.Model):
         verbose_name="Уровень подготовки"
     )
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def calculate_bmi(self):
         """Расчет индекса массы тела"""
         return round(self.weight / ((self.height / 100) ** 2), 1)
 
     def __str__(self):
-        return f"{self.name} - {self.get_goal_display()}"
+        return f"{self.user.username} - {self.get_goal_display()}"
 
-    # ▼▼▼ ДОБАВЛЯЕМ МЕТОДЫ ГЕНЕРАЦИИ ПЛАНА В СУЩЕСТВУЮЩИЙ КЛАСС UserProfile ▼▼▼
-    
     def generate_training_plan(self):
         """Генерация персонального тренировочного плана на основе данных пользователя"""
         # Очищаем старый план
