@@ -25,6 +25,7 @@
             <a href="{% url 'training_plans:profile_list' %}" class="btn btn-secondary">← Назад к списку</a>
             <a href="{% url 'training_plans:profile_update' object.pk %}" class="btn btn-warning">Редактировать</a>
             <a href="{% url 'training_plans:generate_plan' object.pk %}" class="btn btn-info">Сгенерировать план</a>
+            <a href="{% url 'training_plans:export_pdf' object.pk %}" class="btn btn-success">Скачать PDF</a>
         </div>
 
         <h2>Тренировочный план</h2>

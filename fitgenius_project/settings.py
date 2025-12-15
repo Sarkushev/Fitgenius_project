@@ -105,6 +105,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 LOGIN_URL = '/login/'
+AUTHENTICATION_BACKENDS = (
+    'training_plans.backends.EmailBackend',
+    'django.contrib.auth.backends.ModelBackend',
+)
 
 # Email backend (для разработки)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

@@ -1,6 +1,8 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from . import views
+from django.views.generic import RedirectView
+from django.urls import reverse_lazy
 from .forms import CustomAuthenticationForm
 
 app_name = 'training_plans'
@@ -16,6 +18,8 @@ urlpatterns = [
         authentication_form=CustomAuthenticationForm,
         redirect_authenticated_user=True
     ), name='login'),
+    # Short redirect for convenience / common typo (e.g. user types /l)
+    path('l', RedirectView.as_view(url=reverse_lazy('training_plans:login'), permanent=False)),
     path('logout/', auth_views.LogoutView.as_view(next_page='training_plans:home'), name='logout'),
     
     # Профили
@@ -25,4 +29,5 @@ urlpatterns = [
     path('profiles/<int:pk>/update/', views.UserProfileUpdateView.as_view(), name='profile_update'),
     path('profiles/<int:pk>/delete/', views.UserProfileDeleteView.as_view(), name='profile_delete'),
     path('profiles/<int:pk>/generate-plan/', views.generate_plan_view, name='generate_plan'),
+    path('profiles/<int:pk>/export-pdf/', views.export_training_plan_pdf, name='export_pdf'),
 ]

@@ -5,6 +5,10 @@ from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.contrib import messages
+from django.http import HttpResponse
+from io import BytesIO
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
 from .models import UserProfile, CustomUser, TrainingPlan
 from .forms import UserProfileForm, CustomUserCreationForm, CustomAuthenticationForm
 
@@ -110,6 +114,51 @@ def generate_plan_view(request, pk):
     profile.generate_training_plan()
     messages.success(request, 'Тренировочный план успешно сгенерирован!')
     return redirect('training_plans:profile_detail', pk=pk)
+
+
+# Экспорт в PDF персонального плана (только для владельца)
+@login_required
+def export_training_plan_pdf(request, pk):
+    profile = get_object_or_404(UserProfile, pk=pk, user=request.user)
+
+    buffer = BytesIO()
+    p = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
+
+    # Заголовок
+    p.setFont('Helvetica-Bold', 16)
+    p.drawString(40, height - 50, f"Тренировочный план для: {profile.user.email}")
+    p.setFont('Helvetica', 12)
+    p.drawString(40, height - 70, f"Возраст: {profile.age}  Рост: {profile.height} см  Вес: {profile.weight} кг")
+    p.drawString(40, height - 90, f"Цель: {profile.get_goal_display}  Уровень: {profile.get_fitness_level_display}")
+
+    y = height - 120
+    p.setFont('Helvetica-Bold', 14)
+    current_day = None
+    plans = profile.training_plans.all().order_by('day')
+    for item in plans:
+        if y < 100:
+            p.showPage()
+            y = height - 50
+        if current_day != item.get_day_display():
+            current_day = item.get_day_display()
+            p.setFont('Helvetica-Bold', 12)
+            p.drawString(40, y, current_day)
+            y -= 18
+        p.setFont('Helvetica', 11)
+        line = f"- {item.exercise_name} | Подходы: {item.sets} | Повторы: {item.reps} | Отдых: {item.rest_time}"
+        p.drawString(50, y, line)
+        y -= 16
+        if item.notes:
+            p.setFont('Helvetica-Oblique', 10)
+            p.drawString(60, y, f"Примечание: {item.notes}")
+            y -= 14
+
+    p.showPage()
+    p.save()
+
+    buffer.seek(0)
+    return HttpResponse(buffer, content_type='application/pdf')
 
 # Домашняя страница
 def home_view(request):
