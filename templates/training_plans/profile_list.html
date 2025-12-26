@@ -24,7 +24,10 @@
             <a class="navbar-brand" href="{% url 'training_plans:profile_list' %}">🏋️ FitGenius</a>
             <div class="navbar-nav ms-auto">
                 <span class="navbar-text me-3">Привет, <strong>{{ user.username }}</strong>!</span>
-                <a class="nav-link" href="{% url 'training_plans:logout' %}">Выйти</a>
+                <form method="post" action="{% url 'training_plans:logout' %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="nav-link btn btn-link p-0">Выйти</button>
+                </form>
             </div>
         </div>
     </nav>

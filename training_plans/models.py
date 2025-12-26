@@ -210,3 +210,37 @@ class TrainingPlan(models.Model):
 
     def __str__(self):
         return f"{self.get_day_display()} - {self.exercise_name}"
+
+
+class Training(models.Model):
+    """Пользовательская тренировка/план, которой владеет конкретный пользователь"""
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='trainings',
+        verbose_name='Владелец'
+    )
+    title = models.CharField(max_length=200, verbose_name='Название')
+    description = models.TextField(blank=True, verbose_name='Описание')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.title} ({self.user.email})"
+
+
+class Exercise(models.Model):
+    """Упражнение, входящее в `Training` (один ко многим)"""
+    training = models.ForeignKey(Training, on_delete=models.CASCADE, related_name='exercises')
+    day = models.CharField(max_length=10, choices=TrainingPlan.DAY_CHOICES, verbose_name='День')
+    name = models.CharField(max_length=200, verbose_name='Название упражнения')
+    sets = models.IntegerField(verbose_name='Подходы')
+    reps = models.CharField(max_length=50, verbose_name='Повторы')
+    rest_time = models.CharField(max_length=50, verbose_name='Время отдыха', default='60 сек')
+    notes = models.TextField(blank=True, verbose_name='Примечания')
+
+    class Meta:
+        ordering = ['day']
+
+    def __str__(self):
+        return f"{self.get_day_display()} - {self.name}"

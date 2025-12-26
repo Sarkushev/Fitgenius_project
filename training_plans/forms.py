@@ -1,6 +1,8 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from .models import UserProfile, CustomUser
+from .models import Training, Exercise
+from django.forms import inlineformset_factory
 
 class CustomUserCreationForm(UserCreationForm):
     email = forms.EmailField(
@@ -48,3 +50,36 @@ class UserProfileForm(forms.ModelForm):
             'goal': 'Цель тренировок',
             'fitness_level': 'Уровень подготовки',
         }
+
+
+class TrainingForm(forms.ModelForm):
+    class Meta:
+        model = Training
+        fields = ['title', 'description']
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Название тренировки'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Описание (опционально)'}),
+        }
+
+
+class ExerciseForm(forms.ModelForm):
+    class Meta:
+        model = Exercise
+        fields = ['day', 'name', 'sets', 'reps', 'rest_time', 'notes']
+        widgets = {
+            'day': forms.Select(attrs={'class': 'form-control'}),
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'sets': forms.NumberInput(attrs={'class': 'form-control'}),
+            'reps': forms.TextInput(attrs={'class': 'form-control'}),
+            'rest_time': forms.TextInput(attrs={'class': 'form-control'}),
+            'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+        }
+
+
+TrainingExerciseFormset = inlineformset_factory(
+    Training,
+    Exercise,
+    form=ExerciseForm,
+    extra=1,
+    can_delete=True
+)

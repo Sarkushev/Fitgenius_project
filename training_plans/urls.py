@@ -30,4 +30,11 @@ urlpatterns = [
     path('profiles/<int:pk>/delete/', views.UserProfileDeleteView.as_view(), name='profile_delete'),
     path('profiles/<int:pk>/generate-plan/', views.generate_plan_view, name='generate_plan'),
     path('profiles/<int:pk>/export-pdf/', views.export_training_plan_pdf, name='export_pdf'),
+    # User-created trainings CRUD
+    path('trainings/', views.TrainingListView.as_view(), name='training_list'),
+    path('trainings/create/', views.TrainingCreateView.as_view(), name='training_create'),
+    path('trainings/<int:pk>/', views.TrainingDetailView.as_view(), name='training_detail'),
+    path('trainings/<int:pk>/update/', views.TrainingUpdateView.as_view(), name='training_update'),
+    path('trainings/<int:pk>/delete/', views.TrainingDeleteView.as_view(), name='training_delete'),
+    path('trainings/<int:pk>/export/', views.export_training_xlsx, name='training_export'),
 ]

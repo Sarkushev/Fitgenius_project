@@ -44,3 +44,35 @@ class AuthAndSecurityTests(TestCase):
 		# redirected URL should include the login path
 		self.assertTrue('/login' in resp['Location'])
 
+
+class TrainingCrudTests(TestCase):
+	def setUp(self):
+		self.client = Client()
+		self.user1 = CustomUser.objects.create_user(username='u1', email='u1@example.com', password='pw')
+		self.user2 = CustomUser.objects.create_user(username='u2', email='u2@example.com', password='pw')
+
+	def test_create_training_and_export_by_owner(self):
+		self.client.login(username='u1@example.com', password='pw')
+		# create training (simple create without exercises)
+		resp = self.client.post(reverse('training_plans:training_create'), {'title': 'My Plan', 'description': 'Test'}, follow=True)
+		self.assertIn(resp.status_code, (200, 302))
+		from .models import Training
+		training = Training.objects.get(title='My Plan')
+		# export by owner
+		resp2 = self.client.get(reverse('training_plans:training_export', kwargs={'pk': training.pk}))
+		self.assertEqual(resp2.status_code, 200)
+		self.assertIn('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', resp2['Content-Type'])
+
+	def test_other_user_cannot_edit_or_export(self):
+		# create a training as u1
+		training = __import__('training_plans.models', fromlist=['Training']).Training.objects.create(user=self.user1, title='U1 Plan')
+		# login as u2
+		self.client.login(username='u2@example.com', password='pw')
+		# try to access update view
+		resp = self.client.get(reverse('training_plans:training_update', kwargs={'pk': training.pk}))
+		# Should be forbidden by UserPassesTestMixin -> 403
+		self.assertEqual(resp.status_code, 403)
+		# try to export (view uses get_object_or_404 with user filter)
+		resp2 = self.client.get(reverse('training_plans:training_export', kwargs={'pk': training.pk}))
+		self.assertEqual(resp2.status_code, 404)
+
